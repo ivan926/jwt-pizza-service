@@ -103,8 +103,6 @@ beforeAll(async () => {
      expect(goodResponse.body.name).toBe(generatedFranchiseName);
  
      franchiseID = goodResponse.body.id;
-
-     console.log(franchiseID);
    
 
    });
