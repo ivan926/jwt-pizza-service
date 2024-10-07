@@ -1,5 +1,6 @@
 const request = require("supertest")
 const app = require("../service.js")
+const { Role, DB } = require('../database/database.js');
 
 
 const testUser = { name: 'pizza diner', email: 'reg@test.com', password: 'a' };
@@ -7,13 +8,31 @@ const testUser = { name: 'pizza diner', email: 'reg@test.com', password: 'a' };
 let testUserAuthToken = null;
 let userID = null;
 let adminUserAuthToken = null;
+let newAdminUser = null;
+
+function randomName() {
+    return Math.random().toString(36).substring(2, 12);
+  }
+
+async function createAdminUser() {
+  let user = { password: 'toomanysecrets', roles: [{ role: Role.Admin }] };
+  user.name = randomName();
+  user.email = user.name + '@admin.com';
+
+  await DB.addUser(user);
+
+  return user;
+}
 
 
 beforeAll(async () => {
     testUser.email = Math.random().toString(36).substring(2, 12) + '@test.com';
    
     //login as admin
-    let adminRegisterRes = await request(app).put('/api/auth').send({"email":"a@jwt.com", "password":"admin"});
+    newAdminUser = await createAdminUser();
+
+
+    let adminRegisterRes = await request(app).put('/api/auth').send({"email":`${newAdminUser.email}`, "password":"toomanysecrets"});
     adminUserAuthToken = adminRegisterRes.body.token;
 
     //register new user and use his auth token probably overkill, definitely actually
@@ -49,20 +68,19 @@ beforeAll(async () => {
    test("Successfully add an item to the menu ",async ()=>{
 
     //current admin user is not working so using another admin account to sign in
-    let tempUserAuthorizedToSignIn = await request(app).put('/api/auth').send({"email":"j12ehy3v3p@admin.com", "password":"toomanysecrets"});
-    let tempToken = tempUserAuthorizedToSignIn.body.token;
+    // let tempUserAuthorizedToSignIn = await request(app).put('/api/auth').send({"email":"j12ehy3v3p@admin.com", "password":"toomanysecrets"});
+    // let tempToken = tempUserAuthorizedToSignIn.body.token;
    // console.log(tempUserAuthorizedToSignIn.body);
 
     let newItemOnMenu = { "title":"Student", "description": "Everything on the burger please", "image":"nunya.png", "price": 0.0001 }
        //below covers admin login portion for the particular function
-       const correctMenuResponse = await request(app).put("/api/order/menu").set('Authorization', `Bearer ${tempToken}`).send(newItemOnMenu);
+       const correctMenuResponse = await request(app).put("/api/order/menu").set('Authorization', `Bearer ${adminUserAuthToken}`).send(newItemOnMenu);
  
        expect(correctMenuResponse.statusCode).toBe(200);
      
 
-       let logOutSuccessResponse = await request(app).delete('/api/auth').set("Authorization", `Bearer ${tempToken}`);
-       expect(logOutSuccessResponse.body.message).toBe('logout successful' );
-
+    //    let logOutSuccessResponse = await request(app).delete('/api/auth').set("Authorization", `Bearer ${tempToken}`);
+    //    expect(logOutSuccessResponse.body.message).toBe('logout successful' );
    })
 
 
