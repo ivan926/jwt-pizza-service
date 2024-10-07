@@ -28,8 +28,6 @@ beforeAll(async () => {
 
    userID = loginRes.body.user.id;
 
-   //test bad token 
-
     
   });
 
@@ -45,11 +43,7 @@ beforeAll(async () => {
     expect(WrongIDRes.status).toBe(403);
 
 
-
-
-
    expect(loginRes.body.email).toBe(newEmail);
-
 
 
   })
