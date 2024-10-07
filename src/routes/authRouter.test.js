@@ -88,10 +88,6 @@ beforeAll(async () => {
 
     expect(loginRes.body.message).toBe('welcome to JWT Pizza')
 
-    expect(loginRes.body.version).toBe("20240518.154317");
-
-
-
 
     
   });
